@@ -2,21 +2,22 @@
 import React, { createContext, useEffect, useState, useContext } from "react";
 import { useRouter } from "next/navigation";
 import { hasCookie } from "cookies-next";
+import { User } from "./types";
 
 export interface AuthContextType {
-  user: User | null;
-  login: (email: string, password: string, token: string) => Promise<void>;
+  user: User;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   singUp: (
     name: string,
     lastname: string,
     email: string,
-    password: string,
-    token: string,
-    role: string
-  ) => Promise<{ data: User; status: number } | undefined>;
+    password: string
+  ) => Promise<{ data: { message: string }; status: number } | undefined>;
   loading: boolean;
-  requestReset: (email: string, token: string) => Promise<void>;
+  requestReset: (
+    email: string
+  ) => Promise<{ data: { message: string }; status: number } | undefined>;
   resetPassword: (password: string, token: string) => Promise<void>;
 }
 
@@ -28,10 +29,17 @@ export function useAuth() {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<User>({
+    userId: "",
+    email: "",
+    firstName: "",
+    lastName: "",
+    role: "",
+  });
+  const [loading, setLoading] = useState(false);
 
   const login = async (email: string, password: string) => {
+    setLoading(true);
     await fetch(`${process.env.NEXT_PUBLIC_API}/auth/login`, {
       method: "POST",
       credentials: "include",
@@ -42,45 +50,70 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email: email,
         password: password,
       }),
-    }).then(async (res) => {
-      if (res.status == 200) {
-        setLoading(false);
-        await fetch(`${process.env.NEXT_PUBLIC_API}/users/profile`, {
-          method: "GET",
-          credentials: "include",
-        }).then(async (res) => {
-          if (res.status == 200) {
-            const data = await res.json();
-            setUser(data);
-          }
+    })
+      .then(async (res) => {
+        if (res.status == 200) {
           setLoading(false);
-          router.push("/perfil");
-        });
-      }
-    });
+          await fetch(`${process.env.NEXT_PUBLIC_API}/auth/profile`, {
+            method: "GET",
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }).then(async (res) => {
+            if (res.status == 200) {
+              const data = await res.json();
+              console.log(data);
+              setUser(data);
+              setLoading(false);
+              router.push("/perfil");
+            } else {
+              console.log(res);
+              console.error("Error al obtener el perfil del usuario");
+            }
+          });
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+        return error;
+      })
+      .finally(() => setLoading(false));
   };
 
   const logout = async () => {
     await fetch(`${process.env.NEXT_PUBLIC_API}/auth/logout`, {
       method: "POST",
       credentials: "include",
-    }).then(async (res) => {
-      if (res.status == 200) {
-        router.push("/");
-        setUser(null);
-        setLoading(false);
-      }
-    });
+    })
+      .then(async (res) => {
+        console.log(res);
+        if (res.status == 200) {
+          router.push("/");
+          setUser({
+            userId: "",
+            email: "",
+            firstName: "",
+            lastName: "",
+            role: "",
+          });
+          setLoading(false);
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+        return error;
+      });
   };
 
   const singUp = async (
-    name: string,
-    lastname: string,
+    firstName: string,
+    lastName: string,
     email: string,
-    password: string,
-    token: string
+    password: string
   ) => {
     try {
+      setLoading(true);
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API}/auth/register`,
         {
@@ -90,43 +123,57 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            first_name: name.split(" "),
-            last_name: lastname.split(" "),
-            email: email,
-            password: password,
-            token: token,
+            firstName,
+            lastName,
+            email,
+            password,
           }),
         }
       );
-
+      const data = await response.json();
       if (response.status === 200) {
-        setLoading(false);
+        setTimeout(() => {
+          router.push("/login");
+        }, 2000);
       }
       return {
-        data: await response.json(),
+        data: data,
         status: response.status,
       };
     } catch (error) {
-      console.error("Error during signup:", error);
+      console.error("Error durante el registro:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const requestReset = async (email: string, token: string) => {
-    await fetch(`${process.env.NEXT_PUBLIC_API}/auth/resetPassword/request`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email: email,
-        token: token,
-      }),
-    }).then(async (res) => {
-      if (res.status == 200) {
-        setLoading(false);
-      }
-    });
+  const requestReset = async (email: string) => {
+    setLoading(true);
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API}/auth/reset-password/request`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email }),
+        }
+      );
+
+      const data = await response.json();
+
+      return {
+        status: response.status,
+        data: data,
+      };
+    } catch (error) {
+      console.error("Error requesting password reset:", error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
   };
 
   const resetPassword = async (password: string, token: string) => {
@@ -151,7 +198,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!hasCookie("token")) return;
     if (!user) {
       const fetchUserData = async () => {
-        await fetch(`${process.env.NEXT_PUBLIC_API}/users/profile`, {
+        await fetch(`${process.env.NEXT_PUBLIC_API}/auth/profile`, {
           method: "GET",
           credentials: "include",
         })

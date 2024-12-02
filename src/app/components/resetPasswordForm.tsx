@@ -1,9 +1,8 @@
 "use client";
 import React, { useState, Suspense } from "react";
-import NavBar from "@/components/navBar";
-import Footer from "@/components/footer";
-import { useAuth } from "@/lib/authContext";
+
 import { useRouter, useSearchParams } from "next/navigation";
+import { useAuth } from "../lib/authContext";
 
 function ResetPasswordForm() {
   const router = useRouter();
