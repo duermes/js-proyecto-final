@@ -11,10 +11,10 @@ export default function Home() {
 
         <div className="relative z-10">
           <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-400">
-            Bienvenido
+            My Secret Diary
           </h1>
           <p className="text-xl md:text-2xl text-gray-300 mb-12 max-w-2xl mx-auto">
-            Tu plataforma segura y confiable para gestionar tu inventario
+            Una recopilacion de notas de tu vida.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">

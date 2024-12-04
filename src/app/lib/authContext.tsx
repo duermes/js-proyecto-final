@@ -18,7 +18,10 @@ export interface AuthContextType {
   requestReset: (
     email: string
   ) => Promise<{ data: { message: string }; status: number } | undefined>;
-  resetPassword: (password: string, token: string) => Promise<void>;
+  resetPassword: (
+    password: string,
+    token: string
+  ) => Promise<{ data: { message: string }; status: number } | undefined>;
 }
 
 const AuthContext = createContext<AuthContextType>(undefined);
@@ -177,21 +180,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const resetPassword = async (password: string, token: string) => {
-    await fetch(`${process.env.NEXT_PUBLIC_API}/auth/resetPassword/submit`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        password: password,
-        token: token,
-      }),
-    }).then(async (res) => {
-      if (res.status == 200) {
-        setLoading(false);
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API}/auth/reset-password/submit`,
+      {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          password: password,
+          token: token,
+        }),
       }
-    });
+    );
+    const data = await res.json();
+    if (data.status === 200) {
+      setTimeout(() => {
+        router.push("/login");
+      }, 2000);
+    }
+    console.log(data);
+    return {
+      data: data,
+      status: res.status,
+    };
   };
 
   useEffect(() => {

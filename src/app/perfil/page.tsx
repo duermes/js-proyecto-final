@@ -37,6 +37,7 @@ export default function Home() {
         setMessage(data.message || "Error al actualizar el perfil");
       }
     } catch (error) {
+      console.log(error);
       setMessage("Error al conectar con el servidor");
     } finally {
       setLoading(false);

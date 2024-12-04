@@ -9,10 +9,10 @@ export default function Navbar() {
     <nav className="bg-gray-900 text-white py-4">
       <div className="container mx-auto px-4 flex justify-between items-center">
         <Link
-          href="/"
+          href="/perfil/diary"
           className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-400"
         >
-          Mi App
+          Mi Diario
         </Link>
         <div className="space-x-4">
           <>
@@ -22,12 +22,7 @@ export default function Navbar() {
             >
               Perfil
             </Link>
-            <Link
-              href="/library"
-              className="hover:text-purple-400 transition-colors duration-200"
-            >
-              Librería
-            </Link>
+
             <button
               onClick={logout}
               className="hover:text-purple-400 transition-colors duration-200"
