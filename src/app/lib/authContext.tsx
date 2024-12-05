@@ -1,5 +1,11 @@
 "use client";
-import React, { createContext, useEffect, useState, useContext } from "react";
+import React, {
+  createContext,
+  useEffect,
+  useState,
+  useContext,
+  useCallback,
+} from "react";
 import { useRouter } from "next/navigation";
 import { hasCookie } from "cookies-next";
 import { User } from "./types";
@@ -207,25 +213,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   };
 
+  const fetchUserData = useCallback(async () => {
+    await fetch(`${process.env.NEXT_PUBLIC_API}/auth/profile`, {
+      method: "GET",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then(async (res) => {
+        if (res.status == 200) {
+          const data = await res.json();
+          console.log(data);
+          setUser(data);
+          setLoading(false);
+          router.push("/perfil");
+        } else {
+          console.log(res);
+          console.error("Error al obtener el perfil del usuario");
+        }
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
   useEffect(() => {
+    console.log(`hasCookie("token"): ${hasCookie("token")}`);
     if (!hasCookie("token")) return;
+
     if (!user) {
-      const fetchUserData = async () => {
-        await fetch(`${process.env.NEXT_PUBLIC_API}/auth/profile`, {
-          method: "GET",
-          credentials: "include",
-        })
-          .then(async (res) => {
-            if (res.status == 200) {
-              const data = await res.json();
-              setUser(data);
-            }
-          })
-          .finally(() => setLoading(false));
-      };
       fetchUserData();
     }
-  }, [user]);
+  }, [user, fetchUserData]);
 
   return (
     <AuthContext.Provider

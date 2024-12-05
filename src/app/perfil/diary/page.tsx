@@ -1,76 +1,131 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Entry } from "@/app/components/diary/entry";
-import { NewEntry } from "@/app/components/diary/new-entry";
+import { NewEntryModal } from "@/app/components/diary/new-entry-modal";
+import { NewEntryButton } from "@/app/components/diary/new-entry-button";
 
-// Datos de ejemplo - reemplazar con datos reales de la base de datos
-const sampleEntries = [
-  {
-    id: "1",
-    title: "Mi primer día",
-    content: "Hoy fue un día increíble...",
-    createdAt: new Date("2024-01-01"),
-  },
-  {
-    id: "2",
-    title: "Reflexiones de la tarde",
-    content: "Mientras miraba por la ventana...",
-    createdAt: new Date("2024-01-02"),
-  },
-];
+interface DiaryEntryType {
+  id: string;
+  title: string;
+  content: string;
+  createdAt: Date;
+}
 
 export default function Page() {
-  const [entries] = useState(sampleEntries);
+  const [entries, setEntries] = useState<DiaryEntryType[]>([]);
+  const [isNewEntryModalOpen, setIsNewEntryModalOpen] = useState(false);
 
-  const handleNewEntry = () => {
-    // Implementar lógica para nueva entrada
-    console.log("Nueva entrada");
-  };
+  const newEntry = useCallback(async (title: string, content: string) => {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API}/diary/create-entry`,
+      {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title,
+          content,
+        }),
+      }
+    );
+    return res.status;
+  }, []);
 
-  const handleEntryClick = (id: string) => {
-    // Implementar lógica para ver/editar entrada
-    console.log("Click en entrada:", id);
-  };
+  const getEntries = useCallback(async () => {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API}/diary/get-entries`,
+      {
+        method: "GET",
+        credentials: "include",
+      }
+    );
+    const data = await res.json();
+    console.log(data);
+    setEntries(data);
+  }, []);
+
+  const updateEntry = useCallback(
+    async (entryId: string, title: string, content: string) => {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API}/diary/update-entry`,
+        {
+          method: "PUT",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            entryId,
+            title,
+            content,
+          }),
+        }
+      );
+      return res.status;
+    },
+    []
+  );
+
+  const deleteEntry = useCallback(async (entryId: string) => {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API}/diary/delete-entry`,
+      {
+        method: "DELETE",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          entryId,
+        }),
+      }
+    );
+    return res.status;
+  }, []);
+
+  useEffect(() => {
+    getEntries();
+  }, [getEntries]);
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white">
-      <div className="container mx-auto px-4 py-16">
-        <div className="flex flex-col items-center justify-center min-h-[80vh] text-center space-y-8">
-          {/* Decorative elements */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute -top-1/2 -right-1/2 w-[800px] h-[800px] opacity-30 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full blur-3xl"></div>
-            <div className="absolute -bottom-1/2 -left-1/2 w-[800px] h-[800px] opacity-30 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full blur-3xl"></div>
-          </div>
+    <div>
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex flex-col items-start w-full max-w-4xl mx-auto">
+          <h1 className="text-4xl font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-400">
+            Escribir en mi diario
+          </h1>
 
-          {/* Content */}
-          <div className="relative z-10 w-full max-w-4xl">
-            <h1 className="text-4xl font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-400">
-              Mi Diario Personal
-            </h1>
+          <div className="w-full grid gap-4">
+            <NewEntryButton onClick={() => setIsNewEntryModalOpen(true)} />
 
-            <div className="grid gap-6">
-              <NewEntry onClick={handleNewEntry} />
-
-              {entries.length === 0 ? (
-                <p className="text-gray-400 text-center py-8">
-                  No hay entradas en tu diario aún. ¡Comienza a escribir!
-                </p>
-              ) : (
-                entries.map((entry) => (
-                  <Entry
-                    key={entry.id}
-                    title={entry.title}
-                    content={entry.content}
-                    createdAt={entry.createdAt}
-                    onClick={() => handleEntryClick(entry.id)}
-                  />
-                ))
-              )}
-            </div>
+            {!entries || entries.length === 0 ? (
+              <p className="text-gray-400 py-4">
+                No hay entradas en tu diario aún. ¡Comienza a escribir!
+              </p>
+            ) : (
+              entries.map((entry) => (
+                <Entry
+                  key={entry.id}
+                  {...entry}
+                  onUpdate={updateEntry}
+                  getEntries={getEntries}
+                  onDelete={deleteEntry}
+                />
+              ))
+            )}
           </div>
         </div>
       </div>
-    </main>
+
+      <NewEntryModal
+        isOpen={isNewEntryModalOpen}
+        onOpenChange={setIsNewEntryModalOpen}
+        onSave={newEntry}
+        onUpdate={getEntries}
+      />
+    </div>
   );
 }

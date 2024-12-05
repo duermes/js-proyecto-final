@@ -5,19 +5,25 @@ import { useAuth } from "../lib/authContext";
 import Link from "next/link";
 import Image from "next/image";
 
+interface UserData {
+  firstName: string;
+  lastName: string;
+  email: string;
+}
+
 export default function Home() {
-  const [userData, setUserData] = useState({
+  const [userData, setUserData] = useState<UserData>({
     firstName: "",
     lastName: "",
     email: "",
   });
   const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(false);
-  const { user } = useAuth();
+  const [loadingProfile, setLoadingProfile] = useState(false);
+  const { user, loading } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setLoadingProfile(true);
     setMessage("");
 
     try {
@@ -40,17 +46,27 @@ export default function Home() {
       console.log(error);
       setMessage("Error al conectar con el servidor");
     } finally {
-      setLoading(false);
+      setLoadingProfile(false);
     }
   };
 
   useEffect(() => {
+    console.log("HOLA");
+    console.log(user);
     setUserData({
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
     });
-  }, [user]);
+  }, [user, loading]);
+
+  if (loading) {
+    return <div>Cargando...</div>;
+  }
+
+  if (!user) {
+    return <div>No se ha podido cargar la información del usuario.</div>;
+  }
 
   return (
     <div>
@@ -113,7 +129,7 @@ export default function Home() {
                 type="submit"
                 className="w-full px-6 py-3 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 shadow-md bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white"
               >
-                {loading ? "Actualizando..." : "Actualizar Perfil"}
+                {loadingProfile ? "Actualizando..." : "Actualizar Perfil"}
               </button>
             </form>
 

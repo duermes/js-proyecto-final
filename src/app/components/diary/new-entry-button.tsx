@@ -4,7 +4,7 @@ interface NewDiaryButtonProps {
   onClick: () => void;
 }
 
-export function NewEntry({ onClick }: NewDiaryButtonProps) {
+export function NewEntryButton({ onClick }: NewDiaryButtonProps) {
   return (
     <button
       onClick={onClick}
