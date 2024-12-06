@@ -54,6 +54,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await fetch(`${API_URL}/auth/login`, {
       method: "POST",
       credentials: "include",
+      mode: "cors",
       headers: {
         "Content-Type": "application/json",
       },
