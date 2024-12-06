@@ -53,6 +53,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(true);
     await fetch(`${API_URL}/auth/login`, {
       method: "POST",
+      mode: "no-cors",
       credentials: "include",
       headers: {
         "Content-Type": "application/json",
