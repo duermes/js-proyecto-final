@@ -54,11 +54,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await fetch(`${API_URL}/auth/login`, {
       method: "POST",
       credentials: "include",
-      mode: "cors",
       headers: {
         "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
       },
+
       body: JSON.stringify({
         email: email,
         password: password,
@@ -70,10 +69,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           await fetch(`${API_URL}/auth/profile`, {
             method: "GET",
             credentials: "include",
-            mode: "cors",
             headers: {
               "Content-Type": "application/json",
-              "Access-Control-Allow-Origin": "*",
             },
           }).then(async (res) => {
             if (res.status == 200) {
