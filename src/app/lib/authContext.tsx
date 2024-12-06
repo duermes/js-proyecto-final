@@ -32,7 +32,7 @@ export interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType>(undefined);
 const API_URL =
-  process.env.NEXT_PUBLIC_API || "http://api-js-proyecto.vercel.app";
+  process.env.NEXT_PUBLIC_API || "https://api-js-proyecto.vercel.app";
 
 export function useAuth() {
   return useContext(AuthContext);
