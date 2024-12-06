@@ -31,6 +31,8 @@ export interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType>(undefined);
+const API_URL =
+  process.env.NEXT_PUBLIC_API || "http://api-js-proyecto.vercel.app";
 
 export function useAuth() {
   return useContext(AuthContext);
@@ -49,7 +51,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     setLoading(true);
-    await fetch(`${process.env.NEXT_PUBLIC_API}/auth/login`, {
+    await fetch(`${API_URL}/auth/login`, {
       method: "POST",
       credentials: "include",
       headers: {
@@ -63,7 +65,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .then(async (res) => {
         if (res.status == 200) {
           setLoading(false);
-          await fetch(`${process.env.NEXT_PUBLIC_API}/auth/profile`, {
+          await fetch(`${API_URL}/auth/profile`, {
             method: "GET",
             credentials: "include",
             headers: {
@@ -91,7 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async () => {
-    await fetch(`${process.env.NEXT_PUBLIC_API}/auth/logout`, {
+    await fetch(`${API_URL}/auth/logout`, {
       method: "POST",
       credentials: "include",
     })
@@ -123,22 +125,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   ) => {
     try {
       setLoading(true);
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API}/auth/register`,
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            firstName,
-            lastName,
-            email,
-            password,
-          }),
-        }
-      );
+      const response = await fetch(`${API_URL}/auth/register`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          firstName,
+          lastName,
+          email,
+          password,
+        }),
+      });
       const data = await response.json();
       if (response.status === 200) {
         setTimeout(() => {
@@ -159,17 +158,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const requestReset = async (email: string) => {
     setLoading(true);
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API}/auth/reset-password/request`,
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email }),
-        }
-      );
+      const response = await fetch(`${API_URL}/auth/reset-password/request`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
 
       const data = await response.json();
 
@@ -186,20 +182,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const resetPassword = async (password: string, token: string) => {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API}/auth/reset-password/submit`,
-      {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          password: password,
-          token: token,
-        }),
-      }
-    );
+    const res = await fetch(`${API_URL}/auth/reset-password/submit`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        password: password,
+        token: token,
+      }),
+    });
     const data = await res.json();
     if (data.status === 200) {
       setTimeout(() => {
@@ -214,7 +207,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const fetchUserData = useCallback(async () => {
-    await fetch(`${process.env.NEXT_PUBLIC_API}/auth/profile`, {
+    await fetch(`${API_URL}/auth/profile`, {
       method: "GET",
       credentials: "include",
       headers: {
