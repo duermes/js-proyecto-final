@@ -24,6 +24,10 @@ export default function Home() {
         userData.email,
         userData.password
       );
+      if (!res) {
+        setMessage("res es undefined");
+        return;
+      }
       setMessage(res.data.message);
     } catch (error) {
       console.log(error);
